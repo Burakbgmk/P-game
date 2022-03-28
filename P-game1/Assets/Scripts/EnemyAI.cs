@@ -4,13 +4,17 @@ using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
-    [SerializeField] GameObject player;
     [SerializeField] float distanceToPlayer = 1f;
     [SerializeField] float speed = 0.04f;
 
-    private float animMaxSpeed = 5.029f;
+    GameObject player;
+    MAnimation mAnimation;
+
+
     void Start()
     {
+        player = GameObject.FindGameObjectWithTag("Player");
+        mAnimation = GetComponent<MAnimation>();
     }
 
     void FixedUpdate()
@@ -18,15 +22,7 @@ public class EnemyAI : MonoBehaviour
         MoveToPlayer();
         
     }
-    void RunAnimator()
-    {
-        GetComponent<Animator>().SetFloat("forwardSpeed", animMaxSpeed);
-    }
 
-    void IdleAnimator()
-    {
-        GetComponent<Animator>().SetFloat("forwardSpeed", 0);
-    }
     void MoveToPlayer()
     {
         float distance = Vector3.Distance(player.transform.position, this.transform.position);
@@ -34,12 +30,13 @@ public class EnemyAI : MonoBehaviour
         {
             this.transform.position = Vector3.MoveTowards(this.transform.position, player.transform.position, speed);
             this.transform.LookAt(player.transform.position);
-            RunAnimator();
+            mAnimation.RunAnimator();
         }
         else
         {
-            IdleAnimator();
+            mAnimation.IdleAnimator();
         }
 
     }
+
 }

@@ -4,28 +4,50 @@ using UnityEngine;
 
 public class Fighter : MonoBehaviour
 {
-    //[SerializeField] Rigidbody enemy;
-    
-    [SerializeField] float punchForce = 5f;
-    [SerializeField] float punchDistance = 1.5f;
-    [SerializeField] float punchAngle = 40f;
 
-    Rigidbody enemy;
+    [SerializeField] float punchForce = 5f;
+    [SerializeField] float punchAngle = 40f;
+    [SerializeField] float punchDistance = 1.5f;
+    
+    CombatTarget combatTarget;
+    GameObject[] combatTargets;
 
     bool isPunched;
     private float timeSinceLastHit;
     private float timeBetweenHits = 0.2f;
-    private float distance;
+    
 
     void Start()
     {
-        enemy = GameObject.FindWithTag("Enemy").GetComponent<Rigidbody>();
+        combatTargets = GameObject.FindGameObjectsWithTag("Enemy");
+    }
+
+    private void TargetClosest()
+    {
+        float[] dist = new float[combatTargets.Length];
+        int i=0;
+        combatTarget = null;
+        foreach (GameObject target in combatTargets)
+        {
+            dist[i] = Vector3.Distance(target.transform.position, this.transform.position);
+            if(combatTarget == null)
+            {
+                combatTarget = target.GetComponent<CombatTarget>();
+                i += 1;
+                continue;
+            }
+            else if (dist[i] < dist[i - 1])
+            {
+                combatTarget = target.GetComponent<CombatTarget>();
+            }
+            i += 1;
+        }
     }
 
     void Update()
     {
         timeSinceLastHit += Time.deltaTime;
-        distance = Vector3.Distance(transform.position, enemy.transform.position);
+        TargetClosest();
         isPunched = Input.GetKeyDown(KeyCode.Mouse0);
         if (isPunched)
         {
@@ -37,12 +59,7 @@ public class Fighter : MonoBehaviour
         {
             StopPunch();
         }
-        
-
-
     }
-
-
 
     private void LookToHit()
     {
@@ -55,8 +72,6 @@ public class Fighter : MonoBehaviour
                 this.transform.LookAt(hit.point);
             }
         }
-
-        
     }
 
     private void Punch()
@@ -68,40 +83,19 @@ public class Fighter : MonoBehaviour
     {
         GetComponent<Animator>().ResetTrigger("dopunch");
         GetComponent<Animator>().SetTrigger("stoppunch");
-        
     }
 
     void Hit()
     {
-
         if (timeSinceLastHit < timeBetweenHits)
         {
             return;
         }
-        if (distance < punchDistance && InRange())
+        if (combatTarget.GetDistance() < punchDistance && combatTarget.InRange())
         {
-            PushEnemy();
+            combatTarget.PushEnemy();
         }
         else return;
-        
-    }
-
-    private void PushEnemy()
-    {
-        Vector3 punchDirection = enemy.transform.position - this.transform.position;
-        enemy.AddForce(punchDirection * punchForce, ForceMode.Impulse);
-        Debug.Log("Punchhed");
-    }
-
-    private bool InRange()
-    {
-        Vector3 targetDirection = enemy.transform.position - this.transform.position;
-        Vector3 currentDirection = this.transform.forward;
-        float angle = Vector3.Angle(targetDirection, currentDirection);
-        Debug.Log(angle);
-        if(angle < punchAngle) return true;
-        else return false;
-
     }
 
     private static Ray GetMouseRay()
@@ -109,7 +103,14 @@ public class Fighter : MonoBehaviour
         return Camera.main.ScreenPointToRay(Input.mousePosition);
     }
 
+    public float GetPunchForce()
+    {
+        return punchForce;
+    }
 
-
+    public float GetPunchAngle()
+    {
+        return punchAngle;
+    }
 
 }
