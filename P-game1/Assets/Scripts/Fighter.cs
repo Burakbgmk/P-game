@@ -8,9 +8,11 @@ public class Fighter : MonoBehaviour
     [SerializeField] float punchForce = 5f;
     [SerializeField] float punchAngle = 40f;
     [SerializeField] float punchDistance = 1.5f;
-    
+    [SerializeField] float punchLookDistance = 1f;
+
     CombatTarget combatTarget;
     GameObject[] combatTargets;
+    
 
     bool isPunched;
     private float timeSinceLastHit;
@@ -20,28 +22,6 @@ public class Fighter : MonoBehaviour
     void Start()
     {
         combatTargets = GameObject.FindGameObjectsWithTag("Enemy");
-    }
-
-    private void TargetClosest()
-    {
-        float[] dist = new float[combatTargets.Length];
-        int i=0;
-        combatTarget = null;
-        foreach (GameObject target in combatTargets)
-        {
-            dist[i] = Vector3.Distance(target.transform.position, this.transform.position);
-            if(combatTarget == null)
-            {
-                combatTarget = target.GetComponent<CombatTarget>();
-                i += 1;
-                continue;
-            }
-            else if (dist[i] < dist[i - 1])
-            {
-                combatTarget = target.GetComponent<CombatTarget>();
-            }
-            i += 1;
-        }
     }
 
     void Update()
@@ -61,15 +41,41 @@ public class Fighter : MonoBehaviour
         }
     }
 
+    private void TargetClosest()
+    {
+        float[] dist = new float[combatTargets.Length];
+        int i = 0;
+        combatTarget = null;
+        foreach (GameObject target in combatTargets)
+        {
+            dist[i] = Vector3.Distance(target.transform.position, this.transform.position);
+            if (combatTarget == null)
+            {
+                combatTarget = target.GetComponent<CombatTarget>();
+                i += 1;
+                continue;
+            }
+            else if (dist[i] < dist[i - 1])
+            {
+                combatTarget = target.GetComponent<CombatTarget>();
+            }
+            i += 1;
+        }
+    }
+
     private void LookToHit()
     {
         RaycastHit hit;
         bool hasHit = Physics.Raycast(GetMouseRay(), out hit);
         if (hasHit)
         {
+            if(Vector3.Distance(hit.point,this.transform.position) < punchLookDistance)
+            {
+                return;
+            }
             if (Input.GetMouseButton(0))
             {
-                this.transform.LookAt(hit.point);
+                this.transform.LookAt(new Vector3(hit.point.x,transform.position.y,hit.point.z));
             }
         }
     }
@@ -87,6 +93,7 @@ public class Fighter : MonoBehaviour
 
     void Hit()
     {
+        if (combatTarget == null) return;
         if (timeSinceLastHit < timeBetweenHits)
         {
             return;

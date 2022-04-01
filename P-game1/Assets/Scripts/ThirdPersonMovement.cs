@@ -17,7 +17,6 @@ public class ThirdPersonMovement : MonoBehaviour
     bool isJumped;
 
     Rigidbody rb;
-    Fighter fighter;
     MAnimation mAnimation;
 
     private void Start()
