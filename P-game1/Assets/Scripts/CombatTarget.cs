@@ -1,14 +1,17 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class CombatTarget : MonoBehaviour
 {
-    
+    public bool isPushed;
+
     private float distance;
     Fighter fighter;
     Rigidbody enemy;
     Rigidbody player;
+    
 
     void Start()
     {
@@ -28,9 +31,18 @@ public class CombatTarget : MonoBehaviour
 
     public void PushEnemy()
     {
+        if(this.GetComponent<Grabbable>() != null)
+        {
+            if (CanBePushed() == false) return;
+        }
+        isPushed = true;
         Vector3 punchDirection = enemy.transform.position - player.transform.position;
         enemy.AddForce(punchDirection * fighter.GetPunchForce(), ForceMode.Impulse);
-        Debug.Log("Punchhed");
+    }
+
+    private bool CanBePushed()
+    {
+        return !(this.GetComponent<Grabbable>().isGrabbed);
     }
 
     public bool InRange()
@@ -38,9 +50,10 @@ public class CombatTarget : MonoBehaviour
         Vector3 targetDirection = enemy.transform.position - player.transform.position;
         Vector3 currentDirection = player.transform.forward;
         float angle = Vector3.Angle(targetDirection, currentDirection);
-        Debug.Log(angle);
+        //Debug.Log(angle);
         if (angle < fighter.GetPunchAngle()) return true;
         else return false;
 
     }
+
 }

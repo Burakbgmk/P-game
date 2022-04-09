@@ -21,12 +21,17 @@ public class Fighter : MonoBehaviour
 
     void Start()
     {
-        combatTargets = GameObject.FindGameObjectsWithTag("Enemy");
+        
     }
 
     void Update()
     {
         timeSinceLastHit += Time.deltaTime;
+        if (!CanHit())
+        {
+            return;
+        }
+        GetHitObjects();
         TargetClosest();
         isPunched = Input.GetKeyDown(KeyCode.Mouse0);
         if (isPunched)
@@ -35,10 +40,21 @@ public class Fighter : MonoBehaviour
             Punch();
             timeSinceLastHit = 0f;
         }
-        if(timeSinceLastHit > timeBetweenHits)
+        if (timeSinceLastHit > timeBetweenHits)
         {
             StopPunch();
         }
+    }
+
+    private void GetHitObjects()
+    {
+        GameObject[] thiefObjects = GameObject.FindGameObjectsWithTag("Thief");
+        GameObject[] enemyObjects = GameObject.FindGameObjectsWithTag("Enemy");
+        GameObject[] grabObjects = GameObject.FindGameObjectsWithTag("Grabbable");
+        combatTargets = new GameObject[enemyObjects.Length + grabObjects.Length + thiefObjects.Length];
+        enemyObjects.CopyTo(combatTargets, 0);
+        grabObjects.CopyTo(combatTargets, enemyObjects.Length);
+        thiefObjects.CopyTo(combatTargets, enemyObjects.Length + grabObjects.Length);
     }
 
     private void TargetClosest()
@@ -80,6 +96,11 @@ public class Fighter : MonoBehaviour
         }
     }
 
+    private bool CanHit()
+    {
+        return this.GetComponent<PlayerInteraction>().objectToGrab == null;
+    }
+
     private void Punch()
     {
         GetComponent<Animator>().ResetTrigger("stoppunch");
@@ -102,7 +123,11 @@ public class Fighter : MonoBehaviour
         {
             combatTarget.PushEnemy();
         }
-        else return;
+        else
+        {
+            combatTarget.isPushed = false;
+            return;
+        }
     }
 
     private static Ray GetMouseRay()

@@ -8,19 +8,25 @@ public class ThirdPersonMovement : MonoBehaviour
     [SerializeField] float speed = 6f;
     [SerializeField] float turnSmoothTime = 0.1f;
     [SerializeField] float jumpForce = 10f;
+    [SerializeField] float gripDragRate;
+    public Vector3 movingDistance;
 
     public Transform cam;
 
-    Vector3 direction;
+    public Vector3 direction;
     Vector3 moveDir;
     private float turnSmoothVelocity;
     bool isJumped;
+    float distToGround;
 
     Rigidbody rb;
     MAnimation mAnimation;
+    Collider colliderPlayer;
 
     private void Start()
     {
+        colliderPlayer = this.GetComponent<Collider>();
+        distToGround = colliderPlayer.bounds.extents.y;
         rb = this.GetComponent<Rigidbody>();
         mAnimation = GetComponent<MAnimation>();
     }
@@ -31,7 +37,7 @@ public class ThirdPersonMovement : MonoBehaviour
         float vertical = Input.GetAxisRaw("Vertical");
         direction = new Vector3(horizontal, 0f, vertical).normalized;
         isJumped = Input.GetKeyDown(KeyCode.Space);
-        if (isJumped && rb.transform.position.y < 0.03)
+        if (isJumped && CanJump())
         {
             Jump();
         }
@@ -45,7 +51,8 @@ public class ThirdPersonMovement : MonoBehaviour
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
             transform.rotation = Quaternion.Euler(0f, angle, 0f);
             moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            rb.MovePosition(transform.position + moveDir.normalized * speed * Time.deltaTime);
+            movingDistance = moveDir.normalized * speed * Time.deltaTime;
+            rb.MovePosition(transform.position + movingDistance);
             mAnimation.RunAnimator();
         }
         else
@@ -60,5 +67,26 @@ public class ThirdPersonMovement : MonoBehaviour
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 
-    
+    private bool CanJump()
+    {
+        Vector3 boxExtends = new Vector3(colliderPlayer.bounds.extents.x, colliderPlayer.bounds.extents.x, colliderPlayer.bounds.extents.x);
+        return Physics.BoxCast(colliderPlayer.bounds.center, boxExtends, Vector3.down, Quaternion.identity, distToGround + 0.1f);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.tag == "Grip")
+        {
+            speed = speed / gripDragRate;
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.tag == "Grip")
+        {
+            speed = speed * gripDragRate;
+        }
+    }
+
+
 }
