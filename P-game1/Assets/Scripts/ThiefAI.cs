@@ -33,6 +33,10 @@ public class ThiefAI : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (thiefObject == null)
+        {
+            return;
+        }
         if(thiefObject.GetComponent<Grabbable>().isThiefGrabbed == false)
         {
             MoveToObject();
@@ -50,11 +54,11 @@ public class ThiefAI : MonoBehaviour
 
     void MoveToObject()
     {
-        float distance = Vector3.Distance(thiefObject.transform.position, this.transform.position);
+        float distance = Vector3.Distance(thiefObject.transform.position - Vector3.up * thiefObject.transform.position.y, this.transform.position);
         if (distance > distanceToObject)
         {
-            this.transform.position = Vector3.MoveTowards(this.transform.position, thiefObject.transform.position, speed);
-            this.transform.LookAt(thiefObject.transform.position);
+            this.transform.position = Vector3.MoveTowards(this.transform.position, thiefObject.transform.position - Vector3.up * thiefObject.transform.position.y, speed);
+            this.transform.LookAt(thiefObject.transform.position - Vector3.up * thiefObject.transform.position.y);
             mAnimation.RunAnimator();
         }
         if (distance < grabDistance)

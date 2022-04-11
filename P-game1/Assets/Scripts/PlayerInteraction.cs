@@ -37,15 +37,8 @@ public class PlayerInteraction : MonoBehaviour
                     objectToGrab = grab;
                     GrabObject();
                 }
-                
-                
             }
-            
-            
         }
-
-
-
     }
 
     void GrabObject()

@@ -18,10 +18,15 @@ public class CombatTarget : MonoBehaviour
         enemy = this.GetComponent<Rigidbody>();
         player = GameObject.FindWithTag("Player").GetComponent<Rigidbody>();
         fighter = GameObject.FindWithTag("Player").GetComponent<Fighter>();
+        
     }
 
     void Update()
     {
+        if(player == null)
+        {
+            return;
+        }
         distance = Vector3.Distance(player.transform.position, enemy.transform.position);
     }
     public float GetDistance()

@@ -19,6 +19,10 @@ public class EnemyAI : MonoBehaviour
 
     void FixedUpdate()
     {
+        if(player == null)
+        {
+            return;
+        }
         MoveToPlayer();
         
     }
@@ -29,7 +33,7 @@ public class EnemyAI : MonoBehaviour
         if(distance > distanceToPlayer)
         {
             this.transform.position = Vector3.MoveTowards(this.transform.position, player.transform.position, speed);
-            this.transform.LookAt(player.transform.position);
+            this.transform.LookAt(player.transform.position - Vector3.up * player.transform.position.y);
             mAnimation.RunAnimator();
         }
         else

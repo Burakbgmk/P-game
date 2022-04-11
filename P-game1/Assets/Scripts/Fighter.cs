@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Fighter : MonoBehaviour
 {
-
     [SerializeField] float punchForce = 5f;
     [SerializeField] float punchAngle = 40f;
     [SerializeField] float punchDistance = 1.5f;
@@ -12,12 +11,10 @@ public class Fighter : MonoBehaviour
 
     CombatTarget combatTarget;
     GameObject[] combatTargets;
-    
 
     bool isPunched;
     private float timeSinceLastHit;
     private float timeBetweenHits = 0.2f;
-    
 
     void Start()
     {
@@ -32,7 +29,6 @@ public class Fighter : MonoBehaviour
             return;
         }
         GetHitObjects();
-        TargetClosest();
         isPunched = Input.GetKeyDown(KeyCode.Mouse0);
         if (isPunched)
         {
@@ -56,7 +52,7 @@ public class Fighter : MonoBehaviour
         grabObjects.CopyTo(combatTargets, enemyObjects.Length);
         thiefObjects.CopyTo(combatTargets, enemyObjects.Length + grabObjects.Length);
     }
-
+    /*
     private void TargetClosest()
     {
         float[] dist = new float[combatTargets.Length];
@@ -77,23 +73,47 @@ public class Fighter : MonoBehaviour
             }
             i += 1;
         }
+    }*/
+
+    private void TargetInRange()
+    {
+        if (combatTargets.Length == 0)
+        {
+            Debug.Log("No enemy");
+            return;
+        }
+        foreach (GameObject target in combatTargets)
+        {
+            if(target.GetComponent<CombatTarget>().GetDistance() < punchDistance && target.GetComponent<CombatTarget>().InRange())
+            {
+                combatTarget = target.GetComponent<CombatTarget>();
+                combatTarget.PushEnemy();
+            }
+            else
+            {
+                target.GetComponent<CombatTarget>().isPushed = false;
+                combatTarget = null;
+            }
+        }
     }
 
     private void LookToHit()
     {
         RaycastHit hit;
         bool hasHit = Physics.Raycast(GetMouseRay(), out hit);
-        if (hasHit)
+        if (!hasHit)
         {
-            if(Vector3.Distance(hit.point,this.transform.position) < punchLookDistance)
-            {
-                return;
-            }
-            if (Input.GetMouseButton(0))
-            {
-                this.transform.LookAt(new Vector3(hit.point.x,transform.position.y,hit.point.z));
-            }
+            return;
         }
+        if(Vector3.Distance(hit.point,this.transform.position) < punchLookDistance)
+        {
+            return;
+        }
+        if (Input.GetMouseButton(0))
+        {
+            this.transform.LookAt(new Vector3(hit.point.x,transform.position.y,hit.point.z));
+        }
+        
     }
 
     private bool CanHit()
@@ -106,6 +126,7 @@ public class Fighter : MonoBehaviour
         GetComponent<Animator>().ResetTrigger("stoppunch");
         GetComponent<Animator>().SetTrigger("dopunch");
     }
+
     public void StopPunch()
     {
         GetComponent<Animator>().ResetTrigger("dopunch");
@@ -114,20 +135,11 @@ public class Fighter : MonoBehaviour
 
     void Hit()
     {
-        if (combatTarget == null) return;
         if (timeSinceLastHit < timeBetweenHits)
         {
             return;
         }
-        if (combatTarget.GetDistance() < punchDistance && combatTarget.InRange())
-        {
-            combatTarget.PushEnemy();
-        }
-        else
-        {
-            combatTarget.isPushed = false;
-            return;
-        }
+        TargetInRange();
     }
 
     private static Ray GetMouseRay()

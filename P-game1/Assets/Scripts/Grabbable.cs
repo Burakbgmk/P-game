@@ -49,6 +49,10 @@ public class Grabbable : MonoBehaviour
             this.GetComponent<Rigidbody>().useGravity = true;
             return;
         }
+        if (isGrabbed)
+        {
+            return;
+        }
         if (isThiefGrabbed)
         {
             this.GetComponent<Rigidbody>().useGravity = false;
