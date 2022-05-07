@@ -9,6 +9,7 @@ TagManager:
   - Grip
   - Grabbable
   - Thief
+  - TargetPlace
   layers:
   - Default
   - TransparentFX

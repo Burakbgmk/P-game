@@ -10,12 +10,14 @@ public class Grabbable : MonoBehaviour
     GameObject player;
     GameObject thief;
     GameObject[] thieves;
+    ThiefAI thiefAI;
 
     void Start()
     {
         isGrabbed = false;
         player = GameObject.FindGameObjectWithTag("Player");
         isThiefGrabbed = false;
+        
     }
 
     void Update()
@@ -26,25 +28,33 @@ public class Grabbable : MonoBehaviour
             if(thiefClone.transform.position.y > -10f)
             {
                 thief = thiefClone;
+                thiefAI = thief.GetComponent<ThiefAI>();
             }
         }
-        GrabbedByPlayer();
-        GrabbedByThief();
+        if(this.GetComponent<ThiefScoreObject>() != null)
+        {
+            GrabbedByThief();
+        }
+        if (this.GetComponent<PlayerScoreObject>() != null)
+        {
+            GrabbedByPlayer();
+        }
+        
     }
 
     private void GrabbedByPlayer()
     {
         if (isGrabbed)
         {
-            this.transform.position = player.transform.position + player.GetComponent<ThirdPersonMovement>().movingDistance + player.transform.forward * 1.5f + Vector3.up;
             this.GetComponent<Rigidbody>().useGravity = false;
+            this.transform.position = player.transform.position + player.GetComponent<ThirdPersonMovement>().movingDistance + player.transform.forward * 1.5f + Vector3.up;
         }
-        else this.GetComponent<Rigidbody>().useGravity = true;
+        else if (!isGrabbed) this.GetComponent<Rigidbody>().useGravity = true;
     }
 
     private void GrabbedByThief()
     {
-        if(thief == null)
+        if (thief == null)
         {
             this.GetComponent<Rigidbody>().useGravity = true;
             return;
@@ -57,12 +67,12 @@ public class Grabbable : MonoBehaviour
         {
             this.GetComponent<Rigidbody>().useGravity = false;
             this.transform.position = thief.transform.position + thief.GetComponent<ThiefAI>().velocity + thief.transform.forward * 1.5f + Vector3.up;
-            
         }
-        else this.GetComponent<Rigidbody>().useGravity = true;
+        else if (!isThiefGrabbed) this.GetComponent<Rigidbody>().useGravity = true;
 
 
     }
+
 
 
 }

@@ -8,50 +8,69 @@ public class ThiefAI : MonoBehaviour
     [SerializeField] float speed = 0.04f;
     [SerializeField] float grabDistance = 2f;
     public Vector3 velocity;
+    public bool isScored;
 
     GameObject[] thiefObjects;
     GameObject thiefObject;
+    GameObject[] targetPlaces;
+    GameObject initialTargetPlace;
+    GameObject targetPlace;
+    GameObject objectToDiscard;
     MAnimation mAnimation;
     
     Vector3 previousVelocity;
-    Vector3 randomGrabPath;
+    Vector3 grabPath;
+
+    int placedScore;
+    int initalTargetPlaceIndex;
+
+    bool toNextObject = true;
 
 
     void Start()
     {
-        thiefObjects = GameObject.FindGameObjectsWithTag("Grabbable");
+        placedScore = 0;
+        isScored = false;
         mAnimation = GetComponent<MAnimation>();
-        thiefObject = ChooseObject();
-        randomGrabPath = new Vector3(Random.Range(-15, -20), 0, Random.Range(-15, -20));
+        targetPlaces = GameObject.FindGameObjectsWithTag("TargetPlace");
+        initalTargetPlaceIndex = Random.Range(0, targetPlaces.Length);
+        initialTargetPlace = targetPlaces[initalTargetPlaceIndex];
+        //grabPath = new Vector3(Random.Range(-15, -20), 0, Random.Range(-15, -20));
+        thiefObjectUpdate();
     }
 
     private void Update()
     {
         velocity = (transform.position - previousVelocity);
         previousVelocity = transform.position;
+        if (this.GetComponent<CombatTarget>().isPushed == true)
+        {
+            DropObject();
+        }
+        thiefObjectUpdate();
+        ChoosingPath();
     }
+
+
 
     void FixedUpdate()
     {
         if (thiefObject == null)
         {
+            Debug.Log("Thief object is null");
             return;
         }
-        if(thiefObject.GetComponent<Grabbable>().isThiefGrabbed == false)
+        if (thiefObject.GetComponent<Grabbable>().isThiefGrabbed == false)
         {
+            Debug.Log("Moving to thief object");
             MoveToObject();
         }
-        else
+        else if (toNextObject == false)
         {
             MoveOnGrab();
         }
-        if (this.GetComponent<CombatTarget>().isPushed == true)
-        {
-            thiefObject.GetComponent<Grabbable>().isThiefGrabbed = false;
-        }
-
     }
-
+    //ThiefMovement
     void MoveToObject()
     {
         float distance = Vector3.Distance(thiefObject.transform.position - Vector3.up * thiefObject.transform.position.y, this.transform.position);
@@ -66,23 +85,117 @@ public class ThiefAI : MonoBehaviour
             GrabObject();
         }
 
-
     }
+    void MoveOnGrab()
+    {
+        this.transform.position = Vector3.MoveTowards(this.transform.position, grabPath, speed);
+        this.transform.LookAt(grabPath);
+        mAnimation.RunAnimator();
+    }
+    // //
+
+    // Thief Object Selection and Action
+    private void thiefObjectUpdate()
+    {
+        thiefObjects = GameObject.FindGameObjectsWithTag("Grabbable");
+        thiefObject = ChooseObject();
+    }
+
     GameObject ChooseObject()
     {
-        return thiefObjects[Random.Range(0, thiefObjects.Length)];
+        foreach (GameObject item in thiefObjects)
+        {
+            if (item.GetComponent<ThiefScoreObject>() != null && item != null && item.GetComponent<Grabbable>().isActiveAndEnabled == true)
+            {
+                objectToDiscard = item;
+                return item;
+            }
+        }
+        return null;
     }
 
     void GrabObject()
     {
         thiefObject.GetComponent<Grabbable>().isThiefGrabbed = true;
+        toNextObject = false;
     }
 
-    void MoveOnGrab()
+    public void DropObject()
     {
-        this.transform.position = Vector3.MoveTowards(this.transform.position, randomGrabPath, speed);
-        this.transform.LookAt(randomGrabPath);
-        mAnimation.RunAnimator();
+        thiefObject.GetComponent<Grabbable>().isThiefGrabbed = false;
     }
+
+    private void SetObjectPlaced()
+    {
+        thiefObject.GetComponent<Rigidbody>().useGravity = true;
+        thiefObject.GetComponent<Grabbable>().enabled = false;
+        toNextObject = true;
+    }
+
+    // //
+
+    // Path Manager
+    void ChoosingPath()
+    {
+        if(isScored == false)
+        {
+            grabPath = initialTargetPlace.transform.position;
+            
+        }
+        else if(isScored == true)
+        {
+            if(targetPlace == null)
+            {
+                targetPlace = targetPlaces[Random.Range(0, targetPlaces.Length)];
+            }
+            grabPath = targetPlace.transform.position;
+            
+        }
+
+
+    }
+
+    private void RemoveTargetPlace()
+    {
+        List<GameObject> list = new List<GameObject>();
+        list.AddRange(targetPlaces);
+        list.Remove(targetPlace);
+        targetPlaces = list.ToArray();
+        targetPlace = null;
+    }
+
+    private void RemoveInitialPlace()
+    {
+        List<GameObject> list = new List<GameObject>();
+        list.AddRange(targetPlaces);
+        list.Remove(initialTargetPlace);
+        targetPlaces = list.ToArray();
+    }
+
+    // //
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject == initialTargetPlace)
+        {
+            DropObject();
+            SetObjectPlaced();
+            Debug.Log("Object dropped");
+            //objectToDiscard = null;
+            isScored = true;
+            placedScore += 1;
+            RemoveInitialPlace();
+        }
+        if (other.gameObject == targetPlace && isScored == true)
+        {
+            DropObject();
+            SetObjectPlaced();
+            placedScore += 1;
+            RemoveTargetPlace();
+        }
+    }
+
+
+
 
 }
