@@ -43,12 +43,12 @@ public class PlayerInteraction : MonoBehaviour
 
     void GrabObject()
     {
-        objectToGrab.GetComponent<Grabbable>().isGrabbed = true;
+        objectToGrab.GetComponent<GrabbableStates>().SetGrabbed(this.gameObject);
     }
 
     void DropObject()
     {
         if (objectToGrab == null) return;
-        objectToGrab.GetComponent<Grabbable>().isGrabbed = false;
+        objectToGrab.GetComponent<GrabbableStates>().SetFree();
     }
 }

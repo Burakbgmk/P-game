@@ -36,7 +36,7 @@ public class CombatTarget : MonoBehaviour
 
     public void PushEnemy()
     {
-        if(this.GetComponent<Grabbable>() != null)
+        if(this.gameObject.tag == "Grabbable")
         {
             if (CanBePushed() == false) return;
         }
@@ -47,7 +47,7 @@ public class CombatTarget : MonoBehaviour
 
     private bool CanBePushed()
     {
-        return !(this.GetComponent<Grabbable>().isGrabbed);
+        return !(this.GetComponent<GrabbableStates>().GetIsGrabbed());
     }
 
     public bool InRange()

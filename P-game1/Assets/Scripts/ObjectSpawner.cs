@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class ObjectSpawner : MonoBehaviour
 {
+    [SerializeField] GameObject thiefObjectToSpawn;
+    [SerializeField] GameObject playerObjectToSpawn;
+
     GameObject[] objects;
 
     void Update()
@@ -13,7 +16,7 @@ public class ObjectSpawner : MonoBehaviour
         int playerObjectCount = 0;
         foreach (var grabObject in objects)
         {
-            if (grabObject.GetComponent<Grabbable>().isActiveAndEnabled == true)
+            if (grabObject.GetComponent<Collider>().enabled == true)
             {
                 if (grabObject.GetComponent<ThiefScoreObject>() != null)
                 {
@@ -25,15 +28,19 @@ public class ObjectSpawner : MonoBehaviour
                 }
             }
         }
+        if (thiefObjectCount < 2) ObjectSpawn(thiefObjectToSpawn);
+        if (playerObjectCount < 2) ObjectSpawn(playerObjectToSpawn);
+
+        /*
         foreach (var spawnObject in objects)
         {
-            if (spawnObject.GetComponent<Grabbable>().isActiveAndEnabled == true)
+            if (spawnObject.GetComponent<Collider>().enabled == true)
             {
-                if (thiefObjectCount < 2 && spawnObject.GetComponent<ThiefScoreObject>() != null) ObjectSpawn(spawnObject);
-                if (playerObjectCount < 2 && spawnObject.GetComponent<PlayerScoreObject>() != null) ObjectSpawn(spawnObject);
+                if (thiefObjectCount < 2 && spawnObject.GetComponent<ThiefScoreObject>() != null) ObjectSpawn(thiefObjectToSpawn);
+                if (playerObjectCount < 2 && spawnObject.GetComponent<PlayerScoreObject>() != null) ObjectSpawn(playerObjectToSpawn);
             }
         }
-        
+        */
     }
 
     void ObjectSpawn(GameObject spawnObject)

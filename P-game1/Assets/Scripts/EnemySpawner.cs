@@ -9,9 +9,9 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] float enemySpawnRepeatTime;
     [SerializeField] float thiefSpawnBeginTime;
     [SerializeField] float thiefSpawnRepeatTime;
-
-    GameObject enemy;
-    GameObject thief;
+    [SerializeField] GameObject thief;
+    [SerializeField] GameObject enemy;
+    //GameObject thief;
     GameObject[] enemies;
     GameObject[] thieves;
 
@@ -21,38 +21,30 @@ public class EnemySpawner : MonoBehaviour
     private bool isSpawnEngaged;
 
 
-
     void Start()
     {
-        isSpawnEngaged = true;
-        enemy = GameObject.FindGameObjectWithTag("Enemy");
-        thief = GameObject.FindGameObjectWithTag("Thief");
+        isSpawnEngaged = false;
+        //enemy = GameObject.FindGameObjectWithTag("Enemy");
+        //thief = GameObject.FindGameObjectWithTag("Thief");
     }
 
     private void Update()
     {
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        if (spawnCount > maxSpawnCount)
+        if (spawnCount >= maxSpawnCount && isSpawnEngaged)
         {
             CancelInvoke();
-            isSpawnEngaged = true;
+            isSpawnEngaged = false;
             return;
         }
-        if (isSpawnEngaged)
+        if (!isSpawnEngaged)
         {
             InvokeRepeating("EnemySpawn", enemySpawnBeginTime, enemySpawnRepeatTime);
             InvokeRepeating("ThiefSpawn", thiefSpawnBeginTime, thiefSpawnRepeatTime);
-            isSpawnEngaged = false;
+            isSpawnEngaged = true;
             
         }
-        
         spawnCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
-        
-
-
-
-        
-        
     }
 
     void EnemySpawn()
